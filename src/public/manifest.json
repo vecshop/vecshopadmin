@@ -1,11 +1,11 @@
 {
-  "name": "VectorShop Admin",
+  "name": "VS Admin",
   "short_name": "VS Admin",
-  "description": "Admin dashboard for VectorShop e-commerce platform",
+  "description": "Vector Shop Admin Dashboard",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#c3d2ff",
+  "background_color": "#ffffff",
   "theme_color": "#4e73df",
   "icons": [
     {
