@@ -815,8 +815,15 @@
 
       // Fetch leaderboard data
       async function fetchLeaderboard() {
+        const tbody = document.getElementById("leaderboardTable");
+
         try {
           const response = await fetch("/api/leaderboard");
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
           const data = await response.json();
 
           if (data.success) {
@@ -824,17 +831,18 @@
             updateStats();
             displayLeaderboard(leaderboardData);
           } else {
-            throw new Error("Failed to fetch leaderboard data");
+            throw new Error(data.error || "Failed to fetch leaderboard data");
           }
         } catch (error) {
           console.error("Error:", error);
-          document.getElementById("leaderboardTable").innerHTML = `
-                    <tr>
-                        <td colspan="4" class="error">
-                            Failed to load leaderboard data. Please try again later.
-                        </td>
-                    </tr>
-                `;
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-center text-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Failed to load leaderboard data. Please try again later.
+              </td>
+            </tr>
+          `;
         }
       }
 

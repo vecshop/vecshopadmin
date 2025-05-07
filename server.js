@@ -33,6 +33,63 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Leaderboard endpoint
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    // Get registered users
+    const { data: users, error: usersError } = await supabase
+      .from("users")
+      .select("id, full_name, points, exp, display_id")
+      .order("exp", { ascending: false });
+
+    if (usersError) throw usersError;
+
+    // Get temporary users
+    const { data: tempUsers, error: tempError } = await supabase
+      .from("temporary_leaderboard")
+      .select("name, exp_points, display_id, class")
+      .order("exp_points", { ascending: false });
+
+    if (tempError) throw tempError;
+
+    // Format registered users
+    const formattedUsers = users.map((user) => ({
+      id: user.id,
+      name: user.full_name,
+      points: user.points || 0,
+      exp: user.exp || 0,
+      display_id: user.display_id,
+      source: "user",
+    }));
+
+    // Format temporary users
+    const formattedTempUsers = tempUsers.map((user) => ({
+      name: user.name,
+      points: 0,
+      exp: user.exp_points || 0,
+      display_id: user.display_id,
+      class: user.class,
+      source: "temporary",
+    }));
+
+    // Combine and sort by exp
+    const combined = [...formattedUsers, ...formattedTempUsers].sort(
+      (a, b) => b.exp - a.exp
+    );
+
+    res.json({
+      success: true,
+      data: combined,
+    });
+  } catch (error) {
+    console.error("Leaderboard error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch leaderboard data",
+    });
+  }
+});
+
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
