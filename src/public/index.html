@@ -445,6 +445,7 @@
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#4e73df" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="VS Admin" />
@@ -452,17 +453,17 @@
     <link
       rel="apple-touch-icon"
       sizes="152x152"
-      href="/images/app-icon-152.png"
+      href="/images/app-icon-512.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/images/app-icon-180.png"
+      href="/images/app-icon-192.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="167x167"
-      href="/images/app-icon-167.png"
+      href="/images/app-icon-maskable.png"
     />
     <link
       rel="apple-touch-startup-image"
@@ -476,14 +477,11 @@
         window.addEventListener("load", async () => {
           try {
             const registration = await navigator.serviceWorker.register(
-              "/sw.js",
-              {
-                scope: "/",
-              }
+              "/sw.js"
             );
             console.log("ServiceWorker registration successful");
           } catch (err) {
-            console.log("ServiceWorker registration failed: ", err);
+            console.error("ServiceWorker registration failed:", err);
           }
         });
       }
