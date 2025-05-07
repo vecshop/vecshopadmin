@@ -12,6 +12,10 @@
   ],
   "routes": [
     {
+      "src": "/api/admin/(.*)",
+      "dest": "server.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "server.js"
     },

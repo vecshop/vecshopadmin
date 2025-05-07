@@ -23,12 +23,13 @@ function displayLeaderboard(data) {
     // Rank cell with special styling for top 3 and source
     const rankClass = index < 3 ? `rank-${index + 1}` : "";
     const sourceClass = `source-${user.source}`;
-    
+
     // Add points and exp displays
-    const pointsDisplay = user.source === "user" 
-      ? `<div class="points-display"><i class="fa-solid fa-coins"></i> ${user.points.toLocaleString()}</div>`
-      : '';
-    
+    const pointsDisplay =
+      user.source === "user"
+        ? `<div class="points-display"><i class="fa-solid fa-coins"></i> ${user.points.toLocaleString()}</div>`
+        : "";
+
     const expDisplay = `<div class="exp-display"><i class="fa-solid fa-star"></i> ${user.exp.toLocaleString()}</div>`;
 
     row.innerHTML = `
@@ -176,7 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
           body: JSON.stringify({
             user_id: currentUserId || null,
@@ -185,20 +185,24 @@ document.addEventListener("DOMContentLoaded", () => {
           }),
         });
 
+        // Check if response is JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned non-JSON response");
+        }
+
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.message || "Server error occurred");
+          throw new Error(result.error || "Server error occurred");
         }
 
-        if (result.success) {
-          alert("EXP added successfully!");
-          document.getElementById("addExpInput").value = "";
-          bootstrap.Modal.getInstance(
-            document.getElementById("addExpModal")
-          ).hide();
-          await fetchLeaderboard();
-        }
+        alert("EXP added successfully!");
+        document.getElementById("addExpInput").value = "";
+        bootstrap.Modal.getInstance(
+          document.getElementById("addExpModal")
+        ).hide();
+        await fetchLeaderboard();
       } catch (error) {
         console.error("Error adding EXP:", error);
         alert(`Failed to add EXP: ${error.message}`);
@@ -342,33 +346,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Footer navigation
-  const footerBtns = document.querySelectorAll('.footer-btn');
-  const featureModal = new bootstrap.Modal(document.getElementById('featureModal'));
+  const footerBtns = document.querySelectorAll(".footer-btn");
+  const featureModal = new bootstrap.Modal(
+    document.getElementById("featureModal")
+  );
 
-  footerBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+  footerBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
       // Remove active class from all buttons
-      footerBtns.forEach(b => b.classList.remove('active'));
+      footerBtns.forEach((b) => b.classList.remove("active"));
       // Add active class to clicked button
-      btn.classList.add('active');
-      
+      btn.classList.add("active");
+
       // Get the button text to determine which page to load
-      const page = btn.querySelector('span').textContent.toLowerCase();
-      
+      const page = btn.querySelector("span").textContent.toLowerCase();
+
       // Handle navigation
-      switch(page) {
-        case 'leaderboard':
-          window.location.href = '/';
+      switch (page) {
+        case "leaderboard":
+          window.location.href = "/";
           break;
-        case 'products':
-        case 'orders':  
-        case 'accounts':
+        case "products":
+        case "orders":
+        case "accounts":
           // Show coming soon modal
           featureModal.show();
           // Remove active class and restore leaderboard as active
           setTimeout(() => {
-            btn.classList.remove('active');
-            footerBtns[0].classList.add('active');
+            btn.classList.remove("active");
+            footerBtns[0].classList.add("active");
           }, 300);
           break;
       }

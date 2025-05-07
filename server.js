@@ -90,6 +90,112 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
+// Add EXP endpoint
+app.post("/api/admin/add-exp", async (req, res) => {
+  try {
+    const { user_id, display_id, exp_amount } = req.body;
+
+    if (!exp_amount || exp_amount < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid EXP amount",
+      });
+    }
+
+    if (user_id) {
+      // Handle registered user
+      const { data, error } = await supabase.rpc("increment_exp", {
+        row_id: user_id,
+        increment_amount: exp_amount,
+      });
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        new_exp: data,
+      });
+    } else if (display_id) {
+      // Handle temporary user
+      const { data, error } = await supabase.rpc("increment_temp_exp", {
+        temp_id: display_id,
+        increment_amount: exp_amount,
+      });
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        new_exp: data,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: "Missing user_id or display_id",
+      });
+    }
+  } catch (error) {
+    console.error("Add EXP error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Reduce EXP endpoint
+app.post("/api/admin/reduce-exp", async (req, res) => {
+  try {
+    const { user_id, display_id, exp_amount } = req.body;
+
+    if (!exp_amount || exp_amount < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid EXP amount",
+      });
+    }
+
+    if (user_id) {
+      // Handle registered user
+      const { data, error } = await supabase.rpc("increment_exp", {
+        row_id: user_id,
+        increment_amount: -exp_amount,
+      });
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        new_exp: data,
+      });
+    } else if (display_id) {
+      // Handle temporary user
+      const { data, error } = await supabase.rpc("increment_temp_exp", {
+        temp_id: display_id,
+        increment_amount: -exp_amount,
+      });
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        new_exp: data,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: "Missing user_id or display_id",
+      });
+    }
+  } catch (error) {
+    console.error("Reduce EXP error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
