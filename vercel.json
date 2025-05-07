@@ -1,8 +1,14 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" },
-    { "src": "src/public/**", "use": "@vercel/static" }
+    { 
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "src/public/**",
+      "use": "@vercel/static"
+    }
   ],
   "rewrites": [
     {
@@ -69,10 +75,17 @@
     }
   ],
   "routes": [
-    { "src": "/manifest.json", "dest": "/src/public/manifest.json" },
-    { "src": "/sw.js", "dest": "/src/public/sw.js" },
-    { "src": "/images/(.*)", "dest": "/src/public/images/$1" },
-    { "src": "/ws", "dest": "server.js" },
-    { "src": "/(.*)", "dest": "/src/public/$1" }
+    {
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/ws",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/src/public/$1"
+    }
   ]
 }

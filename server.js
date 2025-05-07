@@ -53,7 +53,10 @@ const supabaseClient = createClient(
 const server = http.createServer(app);
 
 // Create WebSocket server
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({
+  server,
+  path: "/ws",
+});
 
 // Add WebSocket authentication
 wss.on("connection", (ws, req) => {
@@ -667,7 +670,9 @@ app.get("/api/leaderboard", async (req, res) => {
       source: "user",
     }));
 
-    const combinedData = [...tempData, ...userData].sort((a, b) => b.exp - a.exp);
+    const combinedData = [...tempData, ...userData].sort(
+      (a, b) => b.exp - a.exp
+    );
 
     res.json({
       success: true,
