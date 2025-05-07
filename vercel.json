@@ -17,7 +17,8 @@
       "headers": {
         "Upgrade": "websocket",
         "Connection": "upgrade"
-      }
+      },
+      "continue": true
     },
     {
       "src": "/api/admin/(.*)",

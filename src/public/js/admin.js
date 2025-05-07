@@ -5,34 +5,55 @@ let currentRowIndex = null;
 let ws;
 
 function connectWebSocket() {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${
+    window.location.host
+  }/ws`;
+  console.log("Connecting to WebSocket:", wsUrl);
 
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    console.log('WebSocket connected');
+    console.log("WebSocket connected");
+    // Send ping every 30 seconds to keep connection alive
+    setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 30000);
   };
 
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      // Handle incoming WebSocket messages
-      console.log('Received:', data);
+      handleWebSocketMessage(data);
     } catch (error) {
-      console.error('WebSocket message error:', error);
+      console.error("WebSocket message error:", error);
     }
   };
 
-  ws.onclose = (event) => {
-    console.log('WebSocket disconnected');
+  ws.onclose = () => {
+    console.log("WebSocket disconnected");
     // Attempt to reconnect after 5 seconds
     setTimeout(connectWebSocket, 5000);
   };
 
   ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
+    console.error("WebSocket error:", error);
   };
+}
+
+// Add message handler
+function handleWebSocketMessage(data) {
+  switch (data.type) {
+    case "connection":
+      console.log("Connection status:", data.status);
+      break;
+    case "leaderboard_update":
+      fetchLeaderboard(); // Refresh leaderboard data
+      break;
+    default:
+      console.log("Received message:", data);
+  }
 }
 
 // Display leaderboard

@@ -196,64 +196,170 @@ app.post("/api/admin/reduce-exp", async (req, res) => {
   }
 });
 
+// Add Points endpoint for registered users
+app.post("/api/admin/add-points", async (req, res) => {
+  try {
+    const { user_id, points_amount } = req.body;
+
+    if (!points_amount || points_amount < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid points amount",
+      });
+    }
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing user_id",
+      });
+    }
+
+    // Update user points
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        points: supabase.raw(`points + ${points_amount}`),
+      })
+      .eq("id", user_id)
+      .select("points")
+      .single();
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      new_points: data.points,
+    });
+  } catch (error) {
+    console.error("Add points error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Reduce Points endpoint for registered users
+app.post("/api/admin/reduce-points", async (req, res) => {
+  try {
+    const { user_id, points_amount } = req.body;
+
+    if (!points_amount || points_amount < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid points amount",
+      });
+    }
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing user_id",
+      });
+    }
+
+    // Update user points
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        points: supabase.raw(`GREATEST(points - ${points_amount}, 0)`), // Prevent negative points
+      })
+      .eq("id", user_id)
+      .select("points")
+      .single();
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      new_points: data.points,
+    });
+  } catch (error) {
+    console.error("Reduce points error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// WebSocket setup with better error handling
+// WebSocket setup
 const wss = new WebSocket.Server({
-  server,
+  noServer: true,
   path: "/ws",
-  verifyClient: (info, cb) => {
-    // Accept all connections
-    cb(true);
-  },
-  clientTracking: true // Enable built-in client tracking
+});
+
+// Handle WebSocket upgrade
+server.on("upgrade", (request, socket, head) => {
+  if (request.url === "/ws") {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit("connection", ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
 });
 
 // Connection handling
-wss.on("connection", (ws, req) => {
+wss.on("connection", (ws) => {
   console.log("Client connected");
-  
+
   // Send initial connection success message
-  ws.send(JSON.stringify({
-    type: "connection",
-    status: "connected"
-  }));
+  ws.send(
+    JSON.stringify({
+      type: "connection",
+      status: "connected",
+    })
+  );
 
   // Keep connection alive with ping/pong
-  const pingInterval = setInterval(() => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.ping();
-    }
-  }, 30000);
-
+  ws.isAlive = true;
   ws.on("pong", () => {
-    // Client is still alive
+    ws.isAlive = true;
   });
 
-  ws.on("message", async (message) => {
+  // Handle messages
+  ws.on("message", (message) => {
     try {
       const data = JSON.parse(message);
-      // Handle messages
+
+      if (data.type === "ping") {
+        ws.send(JSON.stringify({ type: "pong" }));
+      }
+
       console.log("Received:", data);
     } catch (error) {
       console.error("WebSocket message error:", error);
-      ws.send(JSON.stringify({ 
-        type: "error",
-        message: "Invalid message format"
-      }));
     }
   });
 
   ws.on("close", () => {
     console.log("Client disconnected");
-    clearInterval(pingInterval);
   });
 
   ws.on("error", (error) => {
     console.error("WebSocket error:", error);
   });
+});
+
+// Check for stale connections every 30 seconds
+const interval = setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if (ws.isAlive === false) {
+      return ws.terminate();
+    }
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+wss.on("close", () => {
+  clearInterval(interval);
 });
 
 // Handle server shutdown
