@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | V'ctor Store</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="/js/admin.js" defer></script>
+    <style>
+      :root {
+        --primary-color: #4e73df;
+        --secondary-color: #858796;
+        --success-color: #1cc88a;
+        --dark-color: #2a2a2a;
+      }
+
+      body {
+        background-color: #c3d2ff;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .container {
+        max-width: 1400px;
+        padding: 1rem;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
+
+      .header {
+        background: linear-gradient(135deg, var(--primary-color), #224abe);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        height: 160px;
+        overflow: hidden;
+      }
+
+      .title {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.25rem; /* Reduced from default h1 size */
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr; /* Changed to single column */
+        gap: 0.75rem; /* Reduced gap */
+        margin-top: 1rem; /* Reduced margin */
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 8px; /* Reduced from 10px */
+        padding: 0.75rem 1rem; /* Reduced padding */
+        transition: transform 0.2s;
+        border-left: 4px solid var(--primary-color); /* Reduced border width */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-title {
+        color: var(--secondary-color);
+        font-size: 0.8rem; /* Reduced from 0.9rem */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem; /* Reduced margin */
+        font-weight: 600;
+      }
+
+      .stat-value {
+        color: var(--dark-color);
+        font-size: 1.5rem; /* Reduced from 2rem */
+        font-weight: 700;
+      }
+
+      .leaderboard {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .search-box {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        width: 300px;
+        font-size: 0.9rem;
+        transition: border-color 0.2s;
+      }
+
+      .search-box:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+      }
+
+      .table-responsive {
+        padding: 0.5rem;
+      }
+
+      .table {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        margin: 0;
+      }
+
+      tbody tr {
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #f8f9fc;
+      }
+
+      td {
+        padding: 1.2rem 1rem !important;
+        border: none !important;
+        background: transparent;
+      }
+
+      td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+      }
+
+      td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+
+      .rank {
+        position: relative;
+        padding-left: 40px !important;
+      }
+
+      .rank::before {
+        content: attr(data-number);
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Registered users - Blue background */
+      .rank.source-user::before {
+        background: rgba(30, 136, 229, 0.15);
+        color: #1e88e5;
+      }
+
+      /* Temporary users - Yellow background */
+      .rank.source-temporary::before {
+        background: rgba(255, 152, 0, 0.15);
+        color: #ff9800;
+      }
+
+      /* Keep existing rank-1,2,3 styles but update them */
+      .rank-1 {
+        color: #ffd700 !important;
+      }
+      .rank-1::before {
+        background: rgba(255, 215, 0, 0.15) !important;
+        color: #ffd700 !important;
+      }
+
+      .rank-2 {
+        color: #c0c0c0 !important;
+      }
+      .rank-2::before {
+        background: rgba(192, 192, 192, 0.15) !important;
+        color: #c0c0c0 !important;
+      }
+
+      .rank-3 {
+        color: #cd7f32 !important;
+      }
+      .rank-3::before {
+        background: rgba(205, 127, 50, 0.15) !important;
+        color: #cd7f32 !important;
+      }
+
+      .source-badge {
+        padding: 0.5rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .source-user {
+        background: linear-gradient(135deg, #e8f5fe, #dcedfd);
+        color: #1e88e5;
+      }
+
+      .source-temporary {
+        background: linear-gradient(135deg, #fff5e6, #ffe9cc);
+        color: #ff9800;
+      }
+
+      .expand-btn {
+        background: none;
+        border: none;
+        color: var(--secondary-color);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 5px;
+        transition: all 0.2s;
+      }
+
+      .expand-btn:hover {
+        background-color: #f8f9fc;
+        color: var(--primary-color);
+      }
+
+      /* Update the expanded content styling */
+      .expanded-content {
+        background: linear-gradient(to bottom, #f8f9fc, #ffffff);
+        padding: 1.5rem !important;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Update buttons in expanded content */
+      .expanded-content .btn {
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        transition: transform 0.2s;
+      }
+
+      .expanded-content .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .mt-2 {
+        margin-top: 0.75rem;
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          height: auto;
+          min-height: 160px;
+          padding: 1rem;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+          margin-top: 0.75rem;
+        }
+
+        .stat-card {
+          padding: 0.5rem 0.75rem;
+        }
+
+        .stat-value {
+          font-size: 1.25rem;
+        }
+
+        .search-box {
+          width: 100%;
+          margin-top: 1rem;
+        }
+
+        .table-header {
+          flex-direction: column;
+        }
+
+        .source-badge {
+          padding: 0.3rem 0.8rem;
+        }
+      }
+
+      .points-display {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+        padding: 2px 8px;
+        background: linear-gradient(135deg, #ffd700, #ffa000);
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .points-display i {
+        color: #fff;
+        font-size: 0.8rem;
+      }
+
+      .exp-display {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        background: linear-gradient(135deg, #4e73df, #224abe);
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .exp-display i {
+        color: #fff;
+        font-size: 0.8rem;
+      }
+
+      .navbar {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+
+      .navbar-brand {
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .navbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.25rem;
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .nav-button:hover {
+        transform: scale(1.1);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -10px;
+        background: red;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 50%;
+        padding: 2px 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .footer-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      .footer-btn {
+        background: none;
+        border: none;
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .footer-btn.active,
+      .footer-btn:hover {
+        color: var(--primary-color);
+      }
+
+      .footer-btn i {
+        font-size: 1.25rem;
+      }
+    </style>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#4e73df" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="VS Admin" />
+    <link rel="apple-touch-icon" href="/images/app-icon-192.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/images/app-icon-152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/images/app-icon-180.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="167x167"
+      href="/images/app-icon-167.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      href="/images/splash-2048x2732.png"
+      media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
+    />
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+          try {
+            const registration = await navigator.serviceWorker.register(
+              "/sw.js",
+              {
+                scope: "/",
+              }
+            );
+            console.log("ServiceWorker registration successful");
+          } catch (err) {
+            console.log("ServiceWorker registration failed: ", err);
+          }
+        });
+      }
+
+      // Add to home screen prompt handler
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Optionally show your own install button
+        const installButton = document.getElementById("installButton");
+        if (installButton) {
+          installButton.style.display = "block";
+          installButton.addEventListener("click", async () => {
+            if (deferredPrompt) {
+              deferredPrompt.prompt();
+              const { outcome } = await deferredPrompt.userChoice;
+              console.log(`User response to install prompt: ${outcome}`);
+              deferredPrompt = null;
+            }
+          });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <nav class="navbar sticky-top">
+      <div class="navbar-container">
+        <div class="navbar-brand">
+          <i class="fas fa-store me-2"></i>
+          V'ctor Store Admin
+        </div>
+        <div class="navbar-actions">
+          <button class="nav-button" id="chatButton">
+            <i class="fas fa-comments"></i>
+            <span class="notification-badge">2</span>
+          </button>
+          <button class="nav-button" id="notifButton">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge">5</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header">
+        <h1 class="title">
+          <i class="fas fa-chart-line me-2"></i>
+          Leaderboard Dashboard
+        </h1>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-title">
+              <i class="fas fa-users me-2"></i>
+              Total Users
+            </div>
+            <div class="stat-value" id="totalUsers">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">
+              <i class="fas fa-user-check me-2"></i>
+              Active Users
+            </div>
+            <div class="stat-value" id="activeUsers">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">
+              <i class="fas fa-star me-2"></i>
+              Total EXP
+            </div>
+            <div class="stat-value" id="totalExp">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="leaderboard">
+        <div class="table-header">
+          <h2 class="mb-0">
+            <i class="fas fa-trophy me-2"></i>
+            Leaderboard Rankings
+          </h2>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-search me-2"></i>
+            <input
+              type="text"
+              class="search-box"
+              placeholder="Search user..."
+              id="searchInput"
+            />
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>User</th>
+                <th>EXP Points</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTable">
+              <tr>
+                <td colspan="4" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add EXP Modal -->
+    <div class="modal fade" id="addExpModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add EXP</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <input
+                type="number"
+                class="form-control"
+                id="addExpInput"
+                placeholder="Amount of EXP"
+                min="1"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-success" id="confirmAddExp">
+              Add EXP
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reduce EXP Modal -->
+    <div
+      class="modal fade"
+      id="reduceExpModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reduce EXP</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <input
+                type="number"
+                class="form-control"
+                id="reduceExpInput"
+                placeholder="Amount of EXP to Reduce"
+                min="1"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmReduceExp">
+              Reduce EXP
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Points Modal -->
+    <div
+      class="modal fade"
+      id="addPointsModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Points</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <input
+                type="number"
+                class="form-control"
+                id="addPointsInput"
+                placeholder="Amount of Points"
+                min="1"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-warning" id="confirmAddPoints">
+              Add Points
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reduce Points Modal -->
+    <div
+      class="modal fade"
+      id="reducePointsModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reduce Points</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <input
+                type="number"
+                class="form-control"
+                id="reducePointsInput"
+                placeholder="Amount of Points to Reduce"
+                min="1"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="confirmReducePoints"
+            >
+              Reduce Points
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Modal -->
+    <div class="modal fade" id="featureModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-info-circle me-2"></i>
+              Information
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <i
+              class="fas fa-clock text-primary mb-3"
+              style="font-size: 3rem"
+            ></i>
+            <h4>Fitur ini segera hadir!</h4>
+            <p class="text-muted mb-0">Stay tuned for upcoming updates.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Initialize variables
+      let leaderboardData = [];
+
+      // Fetch leaderboard data
+      async function fetchLeaderboard() {
+        try {
+          const response = await fetch("/api/leaderboard");
+          const data = await response.json();
+
+          if (data.success) {
+            leaderboardData = data.data;
+            updateStats();
+            displayLeaderboard(leaderboardData);
+          } else {
+            throw new Error("Failed to fetch leaderboard data");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("leaderboardTable").innerHTML = `
+                    <tr>
+                        <td colspan="4" class="error">
+                            Failed to load leaderboard data. Please try again later.
+                        </td>
+                    </tr>
+                `;
+        }
+      }
+
+      // Update statistics
+      function updateStats() {
+        const totalUsers = leaderboardData.length;
+        const activeUsers = leaderboardData.filter(
+          (user) => user.exp > 0
+        ).length;
+        const totalExp = leaderboardData.reduce(
+          (sum, user) => sum + user.exp,
+          0
+        );
+
+        document.getElementById("totalUsers").textContent = totalUsers;
+        document.getElementById("activeUsers").textContent = activeUsers;
+        document.getElementById("totalExp").textContent =
+          totalExp.toLocaleString();
+      }
+
+      // Search functionality
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredData = leaderboardData.filter(
+          (user) =>
+            user.name.toLowerCase().includes(searchTerm) ||
+            user.display_id.toLowerCase().includes(searchTerm)
+        );
+        displayLeaderboard(filteredData);
+      });
+
+      // Initial load
+      fetchLeaderboard();
+
+      // Refresh data every 60 seconds
+      setInterval(fetchLeaderboard, 60000);
+    </script>
+
+    <nav class="footer-nav">
+      <button class="footer-btn active">
+        <i class="fas fa-trophy"></i>
+        <span>Leaderboard</span>
+      </button>
+      <button class="footer-btn">
+        <i class="fas fa-box"></i>
+        <span>Products</span>
+      </button>
+      <button class="footer-btn">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Orders</span>
+      </button>
+      <button class="footer-btn">
+        <i class="fas fa-users"></i>
+        <span>Accounts</span>
+      </button>
+    </nav>
+  </body>
+</html>

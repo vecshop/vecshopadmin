@@ -1,0 +1,9 @@
+<!-- Add these in the head section -->
+<link rel="stylesheet" href="/css/notifications.css">
+
+<!-- Add these before closing body tag -->
+<script src="/js/notifications.js"></script>
+<script>
+    // Initialize notification service
+    const notificationService = new NotificationService();
+</script>

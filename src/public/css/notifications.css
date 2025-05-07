@@ -1,0 +1,89 @@
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.notification-popup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+  width: 300px;
+  transform: translateX(120%);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+.notification-popup.show {
+  transform: translateX(0);
+}
+
+.notification-content {
+  display: flex;
+  padding: 12px;
+  gap: 12px;
+  position: relative;
+}
+
+.notification-image {
+  width: 70px; /* Ubah ke 7:7 ratio */
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover; /* Ubah ke cover untuk memastikan gambar mengisi container */
+  background: #f8f9fa;
+}
+
+.notification-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #1e88e5;
+}
+
+.notification-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.notification-message {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.notification-close:hover {
+  background: #f5f5f5;
+  color: #666;
+}
