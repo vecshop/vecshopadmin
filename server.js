@@ -200,31 +200,66 @@ const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// WebSocket setup
+// WebSocket setup with better error handling
 const wss = new WebSocket.Server({
   server,
   path: "/ws",
   verifyClient: (info, cb) => {
-    // Accept all connections in development
+    // Accept all connections
     cb(true);
   },
+  clientTracking: true // Enable built-in client tracking
 });
 
-wss.on("connection", (ws) => {
+// Connection handling
+wss.on("connection", (ws, req) => {
   console.log("Client connected");
+  
+  // Send initial connection success message
+  ws.send(JSON.stringify({
+    type: "connection",
+    status: "connected"
+  }));
+
+  // Keep connection alive with ping/pong
+  const pingInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping();
+    }
+  }, 30000);
+
+  ws.on("pong", () => {
+    // Client is still alive
+  });
 
   ws.on("message", async (message) => {
     try {
       const data = JSON.parse(message);
-      // Handle different message types
-      // ...existing message handling code...
+      // Handle messages
+      console.log("Received:", data);
     } catch (error) {
-      console.error("WebSocket error:", error);
-      ws.send(JSON.stringify({ error: "Invalid message format" }));
+      console.error("WebSocket message error:", error);
+      ws.send(JSON.stringify({ 
+        type: "error",
+        message: "Invalid message format"
+      }));
     }
   });
 
   ws.on("close", () => {
     console.log("Client disconnected");
+    clearInterval(pingInterval);
+  });
+
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
+  });
+});
+
+// Handle server shutdown
+process.on("SIGTERM", () => {
+  wss.close(() => {
+    console.log("WebSocket server closed");
+    process.exit(0);
   });
 });

@@ -2,6 +2,38 @@ let expandedRows = new Set();
 let currentUserId = null;
 let currentDisplayId = null;
 let currentRowIndex = null;
+let ws;
+
+function connectWebSocket() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      // Handle incoming WebSocket messages
+      console.log('Received:', data);
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+    }
+  };
+
+  ws.onclose = (event) => {
+    console.log('WebSocket disconnected');
+    // Attempt to reconnect after 5 seconds
+    setTimeout(connectWebSocket, 5000);
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+}
 
 // Display leaderboard
 function displayLeaderboard(data) {
@@ -380,4 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // Initialize WebSocket connection
+  connectWebSocket();
 });
