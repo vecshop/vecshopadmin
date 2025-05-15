@@ -236,27 +236,26 @@ app.post("/api/admin/add-points", async (req, res) => {
       });
     }
 
-    // Safely update points using a parameterized query
-    const { data, error } = await supabase
-      .from("users")
-      .update({
-        points: supabase.raw(`points + ${points_amount}`),
-      })
-      .eq("id", user_id)
-      .select("points")
-      .single();
+    // Use the RPC function instead of raw update
+    const { data, error } = await supabase.rpc("increment_points", {
+      row_id: user_id,
+      increment_amount: points_amount,
+    });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
+    }
 
     res.json({
       success: true,
-      new_points: data.points,
+      new_points: data,
     });
   } catch (error) {
     console.error("Add points error:", error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || "Failed to increment points",
     });
   }
 });
