@@ -95,8 +95,9 @@ app.post("/api/admin/add-exp", async (req, res) => {
   try {
     const { user_id, display_id, exp_amount } = req.body;
 
-    console.log('Adding EXP:', { user_id, display_id, exp_amount }); // Debug log
+    console.log('Adding EXP:', { user_id, display_id, exp_amount });
 
+    // Input validation
     if (!exp_amount || exp_amount < 1) {
       return res.status(400).json({
         success: false,
@@ -105,39 +106,32 @@ app.post("/api/admin/add-exp", async (req, res) => {
     }
 
     if (display_id) {
-      // First verify the temporary user exists
-      const { data: user, error: userError } = await supabase
-        .from("temporary_leaderboard")
-        .select("display_id, exp_points")
-        .eq("display_id", display_id)
-        .single();
-
-      if (userError) {
-        console.error('User lookup error:', userError);
-        return res.status(404).json({
-          success: false,
-          error: "Temporary user not found"
+      // Call the RPC function with try-catch
+      try {
+        const { data, error } = await supabase.rpc("increment_temp_exp", {
+          temp_id: display_id,
+          increment_amount: exp_amount
         });
-      }
 
-      // Then try to increment EXP
-      const { data, error } = await supabase.rpc("increment_temp_exp", {
-        temp_id: display_id,
-        increment_amount: exp_amount
-      });
+        if (error) {
+          console.error('RPC error:', error);
+          return res.status(500).json({
+            success: false,
+            error: error.message || "Failed to update EXP"
+          });
+        }
 
-      if (error) {
-        console.error('RPC error:', error);
+        return res.json({
+          success: true,
+          new_exp: data
+        });
+      } catch (rpcError) {
+        console.error('RPC execution error:', rpcError);
         return res.status(500).json({
           success: false,
-          error: error.message || "Failed to update EXP"
+          error: "Failed to execute EXP update"
         });
       }
-
-      return res.json({
-        success: true,
-        new_exp: data
-      });
     } else if (user_id) {
       // Handle registered user
       const { data, error } = await supabase.rpc("increment_exp", {

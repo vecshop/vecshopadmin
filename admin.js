@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      console.log('Sending request:', {
+      console.log('Debug - Request payload:', {
         user_id: currentUserId || null,
         display_id: currentDisplayId || null,
         exp_amount: expAmount
@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const result = await response.json();
-      console.log('Response:', result);
+      console.log('Debug - Response:', result);
 
       if (!response.ok) {
         throw new Error(result.error || "Server error occurred");
