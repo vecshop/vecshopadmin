@@ -95,10 +95,12 @@ app.post("/api/admin/add-exp", async (req, res) => {
   try {
     const { user_id, display_id, exp_amount } = req.body;
 
+    console.log('Adding EXP:', { user_id, display_id, exp_amount }); // Debug log
+
     if (!exp_amount || exp_amount < 1) {
       return res.status(400).json({
         success: false,
-        error: "Invalid EXP amount",
+        error: "Invalid EXP amount"
       });
     }
 
@@ -106,34 +108,35 @@ app.post("/api/admin/add-exp", async (req, res) => {
       // First verify the temporary user exists
       const { data: user, error: userError } = await supabase
         .from("temporary_leaderboard")
-        .select("display_id")
+        .select("display_id, exp_points")
         .eq("display_id", display_id)
         .single();
 
-      if (userError || !user) {
+      if (userError) {
+        console.error('User lookup error:', userError);
         return res.status(404).json({
           success: false,
-          error: "Temporary user not found",
+          error: "Temporary user not found"
         });
       }
 
       // Then try to increment EXP
       const { data, error } = await supabase.rpc("increment_temp_exp", {
         temp_id: display_id,
-        increment_amount: parseInt(exp_amount),
+        increment_amount: exp_amount
       });
 
       if (error) {
-        console.error("Supabase RPC error:", error);
+        console.error('RPC error:', error);
         return res.status(500).json({
           success: false,
-          error: error.message,
+          error: error.message || "Failed to update EXP"
         });
       }
 
       return res.json({
         success: true,
-        new_exp: data,
+        new_exp: data
       });
     } else if (user_id) {
       // Handle registered user
@@ -157,8 +160,8 @@ app.post("/api/admin/add-exp", async (req, res) => {
   } catch (error) {
     console.error("Add EXP error:", error);
     res.status(500).json({
-      success: false,
-      error: error.message || "Failed to increment EXP",
+      success: false, 
+      error: error.message || "Server error occurred"
     });
   }
 });

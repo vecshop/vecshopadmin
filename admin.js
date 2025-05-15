@@ -220,48 +220,49 @@ function showReducePointsModal(userId, index) {
 // Add event listeners when document loads
 document.addEventListener("DOMContentLoaded", () => {
   // Add EXP confirmation
-  document
-    .getElementById("confirmAddExp")
-    .addEventListener("click", async () => {
-      const expAmount = parseInt(document.getElementById("addExpInput").value);
-      if (!expAmount || expAmount < 1) {
-        alert("Please enter a valid EXP amount");
-        return;
+  document.getElementById("confirmAddExp").addEventListener("click", async () => {
+    const expAmount = parseInt(document.getElementById("addExpInput").value);
+    if (!expAmount || expAmount < 1) {
+      alert("Please enter a valid EXP amount");
+      return;
+    }
+
+    try {
+      console.log('Sending request:', {
+        user_id: currentUserId || null,
+        display_id: currentDisplayId || null,
+        exp_amount: expAmount
+      });
+
+      const response = await fetch("/api/admin/add-exp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: currentUserId || null,
+          display_id: currentDisplayId || null,
+          exp_amount: parseInt(expAmount)
+        })
+      });
+
+      const result = await response.json();
+      console.log('Response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || "Server error occurred");
       }
-
-      try {
-        const response = await fetch("/api/admin/add-exp", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user_id: currentUserId || null,
-            display_id: currentDisplayId || null,
-            exp_amount: parseInt(expAmount),
-          }),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error("Temporary user not found");
-          } else {
-            throw new Error(result.error || "Server error occurred");
-          }
-        }
-
-        // Success case
-        alert("EXP added successfully!");
-        document.getElementById("addExpInput").value = "";
-        bootstrap.Modal.getInstance(document.getElementById("addExpModal")).hide();
-        await fetchLeaderboard();
-      } catch (error) {
-        console.error("Error adding EXP:", error);
-        alert(`Failed to add EXP: ${error.message}`);
-      }
-    });
+      
+      // Success case
+      alert("EXP added successfully!");
+      document.getElementById("addExpInput").value = "";
+      bootstrap.Modal.getInstance(document.getElementById("addExpModal")).hide();
+      await fetchLeaderboard();
+    } catch (error) {
+      console.error("Error adding EXP:", error);
+      alert(`Failed to add EXP: ${error.message}`);
+    }
+  });
 
   // Reduce EXP confirmation
   document
