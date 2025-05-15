@@ -102,23 +102,43 @@ app.post("/api/admin/add-exp", async (req, res) => {
       });
     }
 
-    if (user_id) {
-      // Handle registered user
-      const { data, error } = await supabase.rpc("increment_exp", {
-        row_id: user_id,
-        increment_amount: exp_amount,
+    if (display_id) {
+      // First verify the temporary user exists
+      const { data: user, error: userError } = await supabase
+        .from("temporary_leaderboard")
+        .select("display_id")
+        .eq("display_id", display_id)
+        .single();
+
+      if (userError || !user) {
+        return res.status(404).json({
+          success: false,
+          error: "Temporary user not found",
+        });
+      }
+
+      // Then try to increment EXP
+      const { data, error } = await supabase.rpc("increment_temp_exp", {
+        temp_id: display_id,
+        increment_amount: parseInt(exp_amount),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase RPC error:", error);
+        return res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
 
-      res.json({
+      return res.json({
         success: true,
         new_exp: data,
       });
-    } else if (display_id) {
-      // Handle temporary user
-      const { data, error } = await supabase.rpc("increment_temp_exp", {
-        temp_id: display_id,
+    } else if (user_id) {
+      // Handle registered user
+      const { data, error } = await supabase.rpc("increment_exp", {
+        row_id: user_id,
         increment_amount: exp_amount,
       });
 
@@ -138,7 +158,7 @@ app.post("/api/admin/add-exp", async (req, res) => {
     console.error("Add EXP error:", error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || "Failed to increment EXP",
     });
   }
 });
@@ -201,6 +221,7 @@ app.post("/api/admin/add-points", async (req, res) => {
   try {
     const { user_id, points_amount } = req.body;
 
+    // Input validation
     if (!points_amount || points_amount < 1) {
       return res.status(400).json({
         success: false,
@@ -215,7 +236,7 @@ app.post("/api/admin/add-points", async (req, res) => {
       });
     }
 
-    // Update user points
+    // Safely update points using a parameterized query
     const { data, error } = await supabase
       .from("users")
       .update({

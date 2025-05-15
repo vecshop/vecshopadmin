@@ -198,6 +198,10 @@ function showReduceExpModal(userId, displayId, index) {
 }
 
 function showAddPointsModal(userId, index) {
+  if (!userId) {
+    alert("Invalid user selected");
+    return;
+  }
   currentUserId = userId;
   currentRowIndex = index;
   const modal = new bootstrap.Modal(document.getElementById("addPointsModal"));
@@ -234,27 +238,24 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify({
             user_id: currentUserId || null,
             display_id: currentDisplayId || null,
-            exp_amount: expAmount,
+            exp_amount: parseInt(expAmount),
           }),
         });
-
-        // Check if response is JSON
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned non-JSON response");
-        }
 
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.error || "Server error occurred");
+          if (response.status === 404) {
+            throw new Error("Temporary user not found");
+          } else {
+            throw new Error(result.error || "Server error occurred");
+          }
         }
 
+        // Success case
         alert("EXP added successfully!");
         document.getElementById("addExpInput").value = "";
-        bootstrap.Modal.getInstance(
-          document.getElementById("addExpModal")
-        ).hide();
+        bootstrap.Modal.getInstance(document.getElementById("addExpModal")).hide();
         await fetchLeaderboard();
       } catch (error) {
         console.error("Error adding EXP:", error);
